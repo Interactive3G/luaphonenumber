@@ -1,4 +1,4 @@
-INST_PREFIX = /usr/local
+INST_PREFIX = /usr/local/openresty/luajit/
 INST_LIBDIR = $(INST_PREFIX)/lib/lua/5.1
 
 all: luaphonenumber
