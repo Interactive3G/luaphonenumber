@@ -1,6 +1,7 @@
 #include <cassert>
 #include <iostream>
 #include <string>
+#include <cstdio>
 
 #include "phonenumbers/phonenumber.pb.h"
 #include "phonenumbers/phonenumberutil.h"
@@ -35,7 +36,7 @@ const char *_get_country(PhoneNumber number) {
 
   phone_util.GetRegionCodeForNumber(number, &_country);
 
-  return _country.c_str();
+  return strdup(_country.c_str());
 }
 
 const char *_get_location(PhoneNumber number, const char *language, const char *country) {
@@ -43,7 +44,10 @@ const char *_get_location(PhoneNumber number, const char *language, const char *
 
   location = PhoneNumberOfflineGeocoder().GetDescriptionForNumber(number, icu::Locale(language, country));
 
-  return location.c_str();
+  if (location!=NULL)
+  	return strdup(location.c_str());
+  else
+	  return "";
 }
 
 const char *_get_type(PhoneNumber number) {
@@ -99,7 +103,7 @@ const char* _format(PhoneNumber number, const char *pattern) {
 
   phone_util.Format(number, format, &formatted_number);
 
-  return formatted_number.c_str();
+  return strdup(formatted_number.c_str());
 }
 
 extern "C" int get_country(lua_State* L) {
@@ -166,38 +170,36 @@ extern "C" int parse(lua_State* L) {
   const char *language = luaL_checkstring(L, 3);
   const char *_country = luaL_checkstring(L, 4);
 
+  FILE* fp = std::fopen("/tmp/test.txt", "w+");
+  std::fputs("Start", fp);
+
   number = _parse(input, country);
 
   lua_createtable(L, 0, 7);
 
-  lua_pushstring(L, "country");
   lua_pushstring(L, _get_country(number));
-  lua_settable  (L, -3);
+  lua_setfield (L, -2, "country");
+  std::fputs(_get_country(number),fp);
 
-  lua_pushstring(L, "location");
   lua_pushstring(L, _get_location(number, language, _country));
-  lua_settable  (L, -3);
+  lua_setfield (L, -2, "location");
 
-  lua_pushstring(L, "type");
   lua_pushstring(L, _get_type(number));
-  lua_settable  (L, -3);
+  lua_setfield (L, -2, "type");
 
-  lua_pushstring(L, "E164");
   lua_pushstring(L, _format(number, "E164"));
-  lua_settable  (L, -3);
+  lua_setfield (L, -2, "E164");
 
-  lua_pushstring(L, "INTERNATIONAL");
   lua_pushstring(L, _format(number, "INTERNATIONAL"));
-  lua_settable  (L, -3);
+  lua_setfield (L, -2, "INTERNATIONAL");
 
-  lua_pushstring(L, "NATIONAL");
   lua_pushstring(L, _format(number, "NATIONAL"));
-  lua_settable  (L, -3);
+  lua_setfield (L, -2, "NATIONAL");
 
-  lua_pushstring(L, "RFC3966");
   lua_pushstring(L, _format(number, "RFC3966"));
-  lua_settable  (L, -3);
+  lua_setfield (L, -2, "RFC3966");
 
+  std::fclose(fp);
   return 1;
 }
 
