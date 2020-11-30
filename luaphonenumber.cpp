@@ -26,7 +26,7 @@ const PhoneNumberUtil& phone_util = *PhoneNumberUtil::GetInstance();
 PhoneNumber _parse(const char* input, const char *default_country) {
   PhoneNumber number;
 
-  phone_util.Parse(input, "US", &number);
+  phone_util.Parse(input, default_country, &number);
 
   return number;
 }
@@ -114,7 +114,9 @@ extern "C" int get_country(lua_State* L) {
 
   number = _parse(input, country);
 
-  lua_pushstring(L, _get_country(number));
+  const char * s = _get_country(number);
+  lua_pushstring(L, s);
+  free((void*)s);
 
   return 1;
 }
@@ -129,8 +131,10 @@ extern "C" int get_location(lua_State* L) {
 
   number = _parse(input, country);
 
-  lua_pushstring(L, _get_location(number, language, _country));
-
+  const char * s = _get_location(number, language, _country);
+  lua_pushstring(L, s);
+  free((void*)s);
+  
   return 1;
 }
 
@@ -156,7 +160,9 @@ extern "C" int format(lua_State* L) {
 
   number = _parse(input, country);
 
-  lua_pushstring(L, _format(number, __format));
+  const char * s = _format(number, __format);
+  lua_pushstring(L, s);
+  free((void*)s);
 
   return 1;
 }
