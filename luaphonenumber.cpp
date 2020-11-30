@@ -44,7 +44,7 @@ const char *_get_location(PhoneNumber number, const char *language, const char *
 
   location = PhoneNumberOfflineGeocoder().GetDescriptionForNumber(number, icu::Locale(language, country));
 
-  if (location!=NULL)
+  if (!location.empty())
   	return strdup(location.c_str());
   else
 	  return "";
@@ -170,16 +170,19 @@ extern "C" int parse(lua_State* L) {
   const char *language = luaL_checkstring(L, 3);
   const char *_country = luaL_checkstring(L, 4);
 
-  FILE* fp = std::fopen("/tmp/test.txt", "w+");
-  std::fputs("Start", fp);
+  //FILE* fp = std::fopen("/tmp/test.txt", "w+");
+  //std::fputs("Start", fp);
 
   number = _parse(input, country);
 
-  lua_createtable(L, 0, 7);
+  lua_createtable(L, 0, 8);
 
   lua_pushstring(L, _get_country(number));
   lua_setfield (L, -2, "country");
-  std::fputs(_get_country(number),fp);
+  //std::fputs(_get_country(number),fp);
+
+  lua_pushinteger(L, number.country_code());
+  lua_setfield (L, -2, "country_prefix");
 
   lua_pushstring(L, _get_location(number, language, _country));
   lua_setfield (L, -2, "location");
@@ -199,7 +202,7 @@ extern "C" int parse(lua_State* L) {
   lua_pushstring(L, _format(number, "RFC3966"));
   lua_setfield (L, -2, "RFC3966");
 
-  std::fclose(fp);
+  //std::fclose(fp);
   return 1;
 }
 
